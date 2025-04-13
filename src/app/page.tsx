@@ -10,7 +10,7 @@ import {Textarea} from '@/components/ui/textarea';
 import {generatePrecautions} from '@/ai/flows/generate-precautions';
 import {interactiveMediAgent} from '@/ai/flows/interactive-mediagent';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useForm} from 'react-hook-form';
 import * as z from 'zod';
 import {getDoctorTypes, DoctorType} from '@/services/doctor-type';
@@ -18,7 +18,7 @@ import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert';
 import {AlertTriangle} from 'lucide-react';
 import {cn} from '@/lib/utils';
 import {useToast} from '@/hooks/use-toast';
-import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog";
+import {ScrollArea} from '@/components/ui/scroll-area';
 
 const formSchema = z.object({
   symptoms: z.string().min(2, {
@@ -35,11 +35,17 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const {toast} = useToast();
-  const [open, setOpen] = useState(false);
-  const [interactiveResponse, setInteractiveResponse] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatHistory, setChatHistory] = useState<
+    {
+      sender: 'user' | 'mediagent';
+      message: string;
+    }[]
+  >([]);
   const [userQuestion, setUserQuestion] = useState('');
   const [initialPrecautions, setInitialPrecautions] = useState('');
   const [mediAgentLoading, setMediAgentLoading] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadDoctorTypes = async () => {
@@ -71,8 +77,9 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setPrecautions(null);
-    setInteractiveResponse(null);
+    setChatHistory([]);
     setUserQuestion('');
+    setChatOpen(false);
 
     try {
       const generatedPrecautions = await generatePrecautions(values);
@@ -97,20 +104,25 @@ export default function Home() {
   }
 
   const handleInteractiveSession = async () => {
-    setOpen(true);
+    setChatOpen(true);
   };
 
   const handleQuestionSubmit = async () => {
     setMediAgentLoading(true);
     setError(null);
-    setInteractiveResponse(null);
+
+    const currentQuestion = userQuestion;
+    setUserQuestion('');
+
+    setChatHistory((prev) => [...prev, {sender: 'user', message: currentQuestion}]);
 
     try {
       const response = await interactiveMediAgent({
         initialPrecautions: initialPrecautions,
-        userQuestion: userQuestion,
+        userQuestion: currentQuestion,
       });
-      setInteractiveResponse(response.agentResponse);
+
+      setChatHistory((prev) => [...prev, {sender: 'mediagent', message: response.agentResponse}]);
     } catch (e: any) {
       setError(e.message || 'Failed to get interactive response.');
       toast({
@@ -120,6 +132,10 @@ export default function Home() {
       });
     } finally {
       setMediAgentLoading(false);
+      // Scroll to the bottom of the chat after a new message is added
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
     }
   };
 
@@ -212,64 +228,59 @@ export default function Home() {
                   <p>{precautions?.thingsToAvoid}</p>
                 </div>
               </div>
-              <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
-                  <Button className="mt-4" onClick={handleInteractiveSession} disabled={loading}>
-                    Contact MediAgent
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Interactive MediAgent</DialogTitle>
-                    <DialogDescription>
-                      Ask MediAgent any follow-up questions about your precautions.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="question" className="text-right">
-                        Your Question
-                      </Label>
-                      <Input
-                        type="text"
-                        id="question"
-                        placeholder="Enter your question"
-                        className="col-span-3"
-                        value={userQuestion}
-                        onChange={(e) => setUserQuestion(e.target.value)}
-                      />
-                    </div>
-                    {interactiveResponse && (
-                      <div>
-                        <Label>MediAgent Response</Label>
-                        <p>{interactiveResponse}</p>
-                      </div>
-                    )}
-                    {error && (
-                      <Alert variant="destructive">
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertTitle>Error</AlertTitle>
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    )}
-                  </div>
-                  <DialogFooter>
-                    <Button type="button" onClick={handleQuestionSubmit} disabled={mediAgentLoading}>
-                      {mediAgentLoading ? 'Loading...' : 'Submit Question'}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <Button className="mt-4" onClick={handleInteractiveSession} disabled={loading}>
+                Contact MediAgent
+              </Button>
             </CardContent>
           </Card>
         </div>
       )}
-      {error && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+
+      {chatOpen && precautions && (
+        <div className="mt-8 w-full max-w-2xl">
+          <h2 className="text-2xl font-semibold mb-4">Chat with MediAgent</h2>
+          <Card>
+            <CardContent>
+              <div className="mb-4 h-[300px] overflow-y-auto" ref={chatContainerRef}>
+                <ScrollArea className="rounded-md border p-4">
+                  {chatHistory.map((chat, index) => (
+                    <div key={index} className={`mb-2 ${chat.sender === 'user' ? 'text-right' : 'text-left'}`}>
+                      <span className={`font-bold ${chat.sender === 'user' ? 'text-blue-500' : 'text-green-500'}`}>
+                        {chat.sender === 'user' ? 'You:' : 'MediAgent:'}
+                      </span>
+                      <p className="whitespace-pre-wrap">{chat.message}</p>
+                    </div>
+                  ))}
+                  {mediAgentLoading && <p className="text-left">MediAgent is thinking...</p>}
+                </ScrollArea>
+              </div>
+              <div className="flex items-center">
+                <Input
+                  type="text"
+                  placeholder="Ask MediAgent a question..."
+                  className="flex-1 mr-2"
+                  value={userQuestion}
+                  onChange={(e) => setUserQuestion(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleQuestionSubmit();
+                    }
+                  }}
+                />
+                <Button type="button" onClick={handleQuestionSubmit} disabled={mediAgentLoading}>
+                  {mediAgentLoading ? 'Sending...' : 'Send'}
+                </Button>
+              </div>
+              {error && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );
