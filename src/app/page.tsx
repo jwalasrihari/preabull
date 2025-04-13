@@ -2,12 +2,12 @@
 
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
-import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
+import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel} from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Textarea} from '@/components/ui/textarea';
-import {generatePrecautions, GeneratePrecautionsOutput} from '@/ai/flows/generate-precautions';
+import {generatePrecautions} from '@/ai/flows/generate-precautions';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useEffect, useState} from 'react';
 import {useForm} from 'react-hook-form';
@@ -196,23 +196,23 @@ export default function Home() {
               <div className="grid gap-4">
                 <div>
                   <Label>Dietary Precautions</Label>
-                  <p>{precautions.dietPrecautions}</p>
+                  <p>{precautions?.dietPrecautions}</p>
                 </div>
                 <div>
                   <Label>Sleep Precautions</Label>
-                  <p>{precautions.sleepPrecautions}</p>
+                  <p>{precautions?.sleepPrecautions}</p>
                 </div>
                 <div>
                   <Label>Physical Precautions</Label>
-                  <p>{precautions.physicalPrecautions}</p>
+                  <p>{precautions?.physicalPrecautions}</p>
                 </div>
                 <div>
                   <Label>Mental Precautions</Label>
-                  <p>{precautions.mentalPrecautions}</p>
+                  <p>{precautions?.mentalPrecautions}</p>
                 </div>
                 <div>
                   <Label>Things to Avoid</Label>
-                  <p>{precautions.thingsToAvoid}</p>
+                  <p>{precautions?.thingsToAvoid}</p>
                 </div>
               </div>
               <Button className="mt-4" onClick={handleSpeak} disabled={loading}>
