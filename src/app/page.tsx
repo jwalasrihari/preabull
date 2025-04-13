@@ -149,13 +149,15 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <Card className="w-full max-w-2xl">
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-background">
+      <Card className="w-full max-w-2xl shadow-md rounded-lg">
         <CardHeader>
-          <CardTitle>Pre-Consultation Guide</CardTitle>
-          <CardDescription>Enter your symptoms and the type of doctor you are consulting to generate personalized precautions.</CardDescription>
+          <CardTitle className="text-2xl font-semibold">Pre-Consultation Guide</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Enter your symptoms and the type of doctor you are consulting to generate personalized precautions.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -165,10 +167,16 @@ export default function Home() {
                   <FormItem>
                     <FormLabel>Symptoms</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Describe your symptoms" className="resize-none" {...field} />
+                      <Textarea
+                        placeholder="Describe your symptoms"
+                        className="resize-none shadow-sm rounded-md"
+                        {...field}
+                      />
                     </FormControl>
-                    <FormDescription>Please provide a detailed description of your symptoms.</FormDescription>
-                    <FormMessage>{form.formState.errors.symptoms?.message}</FormMessage>
+                    <FormDescription className="text-sm text-muted-foreground">
+                      Please provide a detailed description of your symptoms.
+                    </FormDescription>
+                    <FormMessage className="text-xs text-destructive">{form.formState.errors.symptoms?.message}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -180,11 +188,11 @@ export default function Home() {
                     <FormLabel>Doctor Type</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a doctor type" />
+                        <SelectTrigger className="shadow-sm rounded-md">
+                          <SelectValue placeholder="Select a doctor type"/>
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="shadow-md rounded-md">
                         {doctorTypes.map((type) => (
                           <SelectItem key={type.name} value={type.name}>
                             {type.name}
@@ -192,8 +200,10 @@ export default function Home() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormDescription>Select the type of doctor you plan to consult.</FormDescription>
-                    <FormMessage>{form.formState.errors.doctorType?.message}</FormMessage>
+                    <FormDescription className="text-sm text-muted-foreground">
+                      Select the type of doctor you plan to consult.
+                    </FormDescription>
+                    <FormMessage className="text-xs text-destructive">{form.formState.errors.doctorType?.message}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -221,17 +231,19 @@ export default function Home() {
                         />
                       </div>
                     </FormControl>
-                    <FormDescription>Upload a PDF or document containing previous medical reports.</FormDescription>
-                    <FormMessage>{form.formState.errors.report?.message}</FormMessage>
+                    <FormDescription className="text-sm text-muted-foreground">
+                      Upload a PDF or document containing previous medical reports.
+                    </FormDescription>
+                    <FormMessage className="text-xs text-destructive">{form.formState.errors.report?.message}</FormMessage>
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading} className="shadow-md rounded-md">
                 {loading ? 'Generating...' : 'Generate Precautions'}
               </Button>
               {error && (
-                <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
+                <Alert variant="destructive" className="shadow-sm rounded-md">
+                  <AlertTriangle className="h-4 w-4"/>
                   <AlertTitle>Error</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
@@ -244,31 +256,35 @@ export default function Home() {
       {precautions && (
         <div className="mt-8 w-full max-w-2xl">
           <h2 className="text-2xl font-semibold mb-4">Your Personalized Precautions</h2>
-          <Card>
-            <CardContent>
+          <Card className="shadow-md rounded-lg">
+            <CardContent className="space-y-4">
               <div className="grid gap-4">
                 <div>
-                  <Label>Dietary Precautions</Label>
-                  <p>{precautions?.dietPrecautions}</p>
+                  <Label className="text-lg font-semibold">Dietary Precautions</Label>
+                  <p className="text-muted-foreground">{precautions?.dietPrecautions}</p>
                 </div>
                 <div>
-                  <Label>Sleep Precautions</Label>
-                  <p>{precautions?.sleepPrecautions}</p>
+                  <Label className="text-lg font-semibold">Sleep Precautions</Label>
+                  <p className="text-muted-foreground">{precautions?.sleepPrecautions}</p>
                 </div>
                 <div>
-                  <Label>Physical Precautions</Label>
-                  <p>{precautions?.physicalPrecautions}</p>
+                  <Label className="text-lg font-semibold">Physical Precautions</Label>
+                  <p className="text-muted-foreground">{precautions?.physicalPrecautions}</p>
                 </div>
                 <div>
-                  <Label>Mental Precautions</Label>
-                  <p>{precautions?.mentalPrecautions}</p>
+                  <Label className="text-lg font-semibold">Mental Precautions</Label>
+                  <p className="text-muted-foreground">{precautions?.mentalPrecautions}</p>
                 </div>
                 <div>
-                  <Label>Things to Avoid</Label>
-                  <p>{precautions?.thingsToAvoid}</p>
+                  <Label className="text-lg font-semibold">Things to Avoid</Label>
+                  <p className="text-muted-foreground">{precautions?.thingsToAvoid}</p>
                 </div>
               </div>
-              <Button className="mt-4" onClick={handleInteractiveSession} disabled={loading}>
+              <Button
+                className="mt-4 shadow-md rounded-md"
+                onClick={handleInteractiveSession}
+                disabled={loading}
+              >
                 Contact MediAgent
               </Button>
             </CardContent>
@@ -279,7 +295,7 @@ export default function Home() {
       {chatOpen && precautions && (
         <div className="mt-8 w-full max-w-2xl">
           <h2 className="text-2xl font-semibold mb-4">Chat with MediAgent</h2>
-          <Card>
+          <Card className="shadow-md rounded-lg">
             <CardContent>
               <div className="mb-4 h-[300px] overflow-y-auto" ref={chatContainerRef}>
                 <ScrollArea className="rounded-md border p-4">
@@ -298,7 +314,7 @@ export default function Home() {
                 <Input
                   type="text"
                   placeholder="Ask MediAgent a question..."
-                  className="flex-1 mr-2"
+                  className="flex-1 mr-2 shadow-sm rounded-md"
                   value={userQuestion}
                   onChange={(e) => setUserQuestion(e.target.value)}
                   onKeyDown={(e) => {
@@ -307,13 +323,13 @@ export default function Home() {
                     }
                   }}
                 />
-                <Button type="button" onClick={handleQuestionSubmit} disabled={mediAgentLoading}>
+                <Button type="button" onClick={handleQuestionSubmit} disabled={mediAgentLoading} className="shadow-md rounded-md">
                   {mediAgentLoading ? 'Sending...' : 'Send'}
                 </Button>
               </div>
               {error && (
-                <Alert variant="destructive" className="mt-4">
-                  <AlertTriangle className="h-4 w-4" />
+                <Alert variant="destructive" className="mt-4 shadow-sm rounded-md">
+                  <AlertTriangle className="h-4 w-4"/>
                   <AlertTitle>Error</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
