@@ -18,7 +18,7 @@ body {
     --card-foreground: 222.2 47.4% 11.2%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --primary: 158 29% 88%; /* Light green (#E8F8F5) converted to HSL */
+    --primary: 154 100% 25%; /* Teal (#008080) converted to HSL */
     --primary-foreground: 210 40% 98%;
     --secondary: 154 100% 25%; /* Teal (#008080) converted to HSL */
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -56,9 +56,9 @@ body {
     --card-foreground: 213 31% 91%;
     --border: 216 34% 17%;
     --input: 216 34% 17%;
-    --primary: 210 40% 98%;
+    --primary: 154 100% 25%;
     --primary-foreground: 222.2 47.4% 1.2%;
-    --secondary: 222.2 47.4% 11.2%;
+    --secondary: 154 100% 25%;
     --secondary-foreground: 210 40% 98%;
     --accent: 216 34% 17%;
     --accent-foreground: 210 40% 98%;
@@ -90,3 +90,4 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
