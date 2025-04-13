@@ -1,41 +1,35 @@
-# Pre-Consultation Guide
+## PreConsultaBull – Your Personalized Pre-Consultation Guide
 
-This Next.js application helps patients prepare for doctor consultations by generating personalized precautions based on their symptoms and the type of doctor they are seeing. Users can also interact with an AI-powered MediAgent to get further assistance and clarification on their precautions.
+### Inspiration  
+Visiting a doctor can often feel overwhelming, especially when you're unsure how to prepare for the appointment. Inspired by this common problem, we wanted to build a tool that empowers patients to take control of their health journey before even stepping into the consultation room.
 
-Key Features:
+### How We Built It  
+- **Frontend:** Built with **Next.js** and **TypeScript** for scalability and type safety  
+- **Backend:** Powered by **Firebase Functions**  
+- **AI Integration:** Used **Gemini (via Firebase Genkit)** to generate tailored recommendations  
+- **Deployment:** Hosted on **Vercel** with a custom domain from **GoDaddy** (`preconsultabull.us`)  
+- **Docker:** Containerized for easy local testing and consistent deployment  
 
-- **Symptom-Based Precautions:** Generates tailored precautions based on user-provided symptoms and selected doctor type.
-- **Interactive MediAgent:** Provides a chat-based interface for users to ask follow-up questions and receive further guidance.
-- **Previous Medical Reports:** Allows users to upload previous medical reports to enhance the accuracy of personalized precautions.
-- **User-Friendly Interface:** Offers a clean and intuitive design for seamless navigation and interaction.
+###  What the AI Does  
+The user inputs their health concern and selects the type of doctor they’re visiting (e.g., dermatologist, cardiologist). The AI then provides:
+- Diet suggestions  
+- Sleep guidance  
+- Physical/mental health tips  
+- Do’s and don’ts specific to their situation  
 
-## My Journey Building a Pre-Consultation Guide with AI
+### What We Learned  
+- Integrating **Gemini AI** through **Firebase Genkit**  
+- Managing custom domains with **Vercel + GoDaddy**  
+- Handling environment variables securely (like API keys)  
+- Dockerizing a full-stack TypeScript app  
+- Importance of prompt engineering for consistent AI responses  
+- creating a domain using Godaddy and porkbun
 
-### Inspiration
-My inspiration for this project came from a desire to make healthcare more accessible and less intimidating for patients. Doctor consultations can often be overwhelming, and patients may not always know the right questions to ask or the precautions to take beforehand. I wanted to leverage the power of AI to empower patients with personalized information, helping them feel more prepared and confident during their consultations.
+### Challenges  
+- Getting the `GOOGLE_GENAI_API_KEY` recognized properly in the Vercel environment  
+- Debugging opaque errors from **Next.js server components**  
+- Balancing dynamic AI output with static frontend design  
+- Managing state and API calls cleanly in React with async functions  
 
-### What I Learned
-Throughout this project, I learned about:
-
-*   **Next.js:** Building full-stack web applications.
-*   **Genkit:** AI-powered flows.
-*   **UI/UX Principles:** Creating a user-friendly interface.
-*   **AI and Healthcare:** The potential of AI in healthcare.
-
-### How I Built It
-1.  **Project Setup:** Initialized using Next.js.
-2.  **UI Components:** Used Radix UI and Tailwind CSS.
-3.  **AI Flows with Genkit:** Defined AI flows for generating personalized precautions.
-4.  **Data Handling:** MongoDB was integrated to store data.
-5.  **Form and Validation:** React Hook Form and Zod were used.
-6.  **Interactive MediAgent:** Implemented the chat functionality.
-7.  **File Upload:** Added the ability to upload previous medical reports.
-8.  **UI/UX Improvements:** Enhanced the user experience.
-9.  **Error Handling:** Implemented error handling.
-
-### Challenges Faced
-*   **Integrating AI Models:** Ensuring accurate AI-generated content.
-*   **Asynchronous Operations:** Managing asynchronous operations.
-*   **Balancing Functionality and UX:** Striking a balance between features and user experience.
-*   **Responsiveness:** Making the application responsive across different devices.
-*   **Module Compatibility:** Resolving compatibility issues.
+### Final Thoughts  
+PreConsultaBull is our attempt to bridge the gap between confusion and confidence in healthcare. By using AI responsibly, we aimed to create a tool that’s supportive, informative, and easy to use for anyone preparing for a doctor’s visit.
