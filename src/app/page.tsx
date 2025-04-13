@@ -27,6 +27,7 @@ const formSchema = z.object({
   doctorType: z.string().min(2, {
     message: 'Doctor Type must be at least 2 characters.',
   }),
+  reportUrl: z.string().optional(),
 });
 
 export default function Home() {
@@ -70,6 +71,7 @@ export default function Home() {
     defaultValues: {
       symptoms: '',
       doctorType: '',
+      reportUrl: '',
     },
   });
 
@@ -183,6 +185,19 @@ export default function Home() {
                       </SelectContent>
                     </Select>
                     <FormDescription>Select the type of doctor you plan to consult.</FormDescription>
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="reportUrl"
+                render={({field}) => (
+                  <FormItem>
+                    <FormLabel>Previous Reports (Optional)</FormLabel>
+                    <FormControl>
+                      <Input type="url" placeholder="Upload URL of previous reports" {...field} />
+                    </FormControl>
+                    <FormDescription>Link to a PDF or online document containing previous medical reports.</FormDescription>
                   </FormItem>
                 )}
               />
