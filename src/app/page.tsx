@@ -16,6 +16,7 @@ import {getDoctorTypes, DoctorType} from '@/services/doctor-type';
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert';
 import {AlertTriangle} from 'lucide-react';
 import {cn} from '@/lib/utils';
+import {useToast} from '@/hooks/use-toast';
 
 const formSchema = z.object({
   symptoms: z.string().min(2, {
@@ -26,11 +27,29 @@ const formSchema = z.object({
   }),
 });
 
+function speak(text: string) {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    // Configure the utterance
+    utterance.lang = 'en-US';
+    utterance.rate = 1.0; // Speed of speech
+    utterance.pitch = 1.0; // Voice pitch
+
+    // Speak the text
+    synth.speak(utterance);
+  } else {
+    console.warn('Text-to-speech not supported in this browser.');
+  }
+}
+
 export default function Home() {
   const [precautions, setPrecautions] = useState<Awaited<ReturnType<typeof generatePrecautions>> | null>(null);
   const [doctorTypes, setDoctorTypes] = useState<DoctorType[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const {toast} = useToast();
 
   useEffect(() => {
     const loadDoctorTypes = async () => {
@@ -39,6 +58,11 @@ export default function Home() {
         setDoctorTypes(types);
       } catch (e) {
         setError('Failed to load doctor types.');
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to load doctor types.',
+        });
       }
     };
 
@@ -63,10 +87,32 @@ export default function Home() {
       setPrecautions(generatedPrecautions);
     } catch (e: any) {
       setError(e.message || 'Failed to generate precautions.');
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: e.message || 'Failed to generate precautions.',
+      });
     } finally {
       setLoading(false);
     }
   }
+
+  const handleSpeak = () => {
+    if (precautions) {
+      let fullText = 'Here are your personalized precautions:\n';
+      fullText += `Dietary Precautions: ${precautions.dietPrecautions}\n`;
+      fullText += `Sleep Precautions: ${precautions.sleepPrecautions}\n`;
+      fullText += `Physical Precautions: ${precautions.physicalPrecautions}\n`;
+      fullText += `Mental Precautions: ${precautions.mentalPrecautions}\n`;
+      fullText += `Things to Avoid: ${precautions.thingsToAvoid}`;
+      speak(fullText);
+    } else {
+      toast({
+        title: 'No precautions generated',
+        description: 'Please generate precautions first.',
+      });
+    }
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -163,6 +209,7 @@ export default function Home() {
                   <p>{precautions.thingsToAvoid}</p>
                 </div>
               </div>
+              <Button className="mt-4" onClick={handleSpeak}>Speak Precautions</Button>
             </CardContent>
           </Card>
         </div>
