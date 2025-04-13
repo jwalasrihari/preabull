@@ -7,7 +7,7 @@ import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Textarea} from '@/components/ui/textarea';
-import {generatePrecautions} from '@/ai/flows/generate-precautions';
+import {generatePrecautions, GeneratePrecautionsOutput} from '@/ai/flows/generate-precautions';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useEffect, useState} from 'react';
 import {useForm} from 'react-hook-form';
@@ -97,15 +97,27 @@ export default function Home() {
     }
   }
 
-  const handleSpeak = () => {
+  const handleSpeak = async () => {
     if (precautions) {
-      let fullText = 'Here are your personalized precautions:\n';
-      fullText += `Dietary Precautions: ${precautions.dietPrecautions}\n`;
-      fullText += `Sleep Precautions: ${precautions.sleepPrecautions}\n`;
-      fullText += `Physical Precautions: ${precautions.physicalPrecautions}\n`;
-      fullText += `Mental Precautions: ${precautions.mentalPrecautions}\n`;
-      fullText += `Things to Avoid: ${precautions.thingsToAvoid}`;
-      speak(fullText);
+      setLoading(true);
+      try {
+        let fullText = 'Hello, I am MediAgent. Here are your personalized precautions:\n';
+        fullText += `Dietary Precautions: ${precautions.dietPrecautions}\n`;
+        fullText += `Sleep Precautions: ${precautions.sleepPrecautions}\n`;
+        fullText += `Physical Precautions: ${precautions.physicalPrecautions}\n`;
+        fullText += `Mental Precautions: ${precautions.mentalPrecautions}\n`;
+        fullText += `Things to Avoid: ${precautions.thingsToAvoid}`;
+        speak(fullText);
+      } catch (e: any) {
+        setError(e.message || 'Failed to generate spoken feedback.');
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: e.message || 'Failed to generate spoken feedback.',
+        });
+      } finally {
+        setLoading(false);
+      }
     } else {
       toast({
         title: 'No precautions generated',
@@ -134,9 +146,6 @@ export default function Home() {
                       <Textarea placeholder="Describe your symptoms" className="resize-none" {...field} />
                     </FormControl>
                     <FormDescription>Please provide a detailed description of your symptoms.</FormDescription>
-                    {form.formState.errors.symptoms && (
-                      <FormMessage>{form.formState.errors.symptoms.message}</FormMessage>
-                    )}
                   </FormItem>
                 )}
               />
@@ -161,9 +170,6 @@ export default function Home() {
                       </SelectContent>
                     </Select>
                     <FormDescription>Select the type of doctor you plan to consult.</FormDescription>
-                    {form.formState.errors.doctorType && (
-                      <FormMessage>{form.formState.errors.doctorType.message}</FormMessage>
-                    )}
                   </FormItem>
                 )}
               />
@@ -209,7 +215,9 @@ export default function Home() {
                   <p>{precautions.thingsToAvoid}</p>
                 </div>
               </div>
-              <Button className="mt-4" onClick={handleSpeak}>Speak Precautions</Button>
+              <Button className="mt-4" onClick={handleSpeak} disabled={loading}>
+                {loading ? 'Contacting MediAgent...' : 'Contact MediAgent'}
+              </Button>
             </CardContent>
           </Card>
         </div>
