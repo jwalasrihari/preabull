@@ -27,7 +27,7 @@ const formSchema = z.object({
   doctorType: z.string().min(2, {
     message: 'Doctor Type must be at least 2 characters.',
   }),
-  reportUrl: z.string().optional(),
+  report: z.any().optional(),
 });
 
 export default function Home() {
@@ -47,6 +47,7 @@ export default function Home() {
   const [initialPrecautions, setInitialPrecautions] = useState('');
   const [mediAgentLoading, setMediAgentLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [reportUrl, setReportUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const loadDoctorTypes = async () => {
@@ -71,7 +72,7 @@ export default function Home() {
     defaultValues: {
       symptoms: '',
       doctorType: '',
-      reportUrl: '',
+      report: null,
     },
   });
 
@@ -83,8 +84,14 @@ export default function Home() {
     setUserQuestion('');
     setChatOpen(false);
 
+    let newReportUrl = reportUrl;
+
     try {
-      const generatedPrecautions = await generatePrecautions(values);
+      const generatedPrecautions = await generatePrecautions({
+        symptoms: values.symptoms,
+        doctorType: values.doctorType,
+        reportUrl: newReportUrl,
+      });
       setPrecautions(generatedPrecautions);
       setInitialPrecautions(
         `Dietary Precautions: ${generatedPrecautions.dietPrecautions}\n` +
@@ -192,17 +199,30 @@ export default function Home() {
               />
               <FormField
                 control={form.control}
-                name="reportUrl"
+                name="report"
                 render={({field}) => (
                   <FormItem>
                     <FormLabel>Previous Reports (Optional)</FormLabel>
                     <FormControl>
                       <div className="flex items-center space-x-2">
-                        <Input type="url" placeholder="Link to previous reports" {...field} />
+                        <FileUpload
+                          onChange={(file: File | null) => {
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setReportUrl(reader.result as string);
+                              };
+                              reader.readAsDataURL(file);
+                            } else {
+                              setReportUrl(undefined);
+                            }
+                            field.onChange(file);
+                          }}
+                        />
                       </div>
                     </FormControl>
-                    <FormDescription>Link to a PDF or online document containing previous medical reports.</FormDescription>
-                    <FormMessage>{form.formState.errors.reportUrl?.message}</FormMessage>
+                    <FormDescription>Upload a PDF or document containing previous medical reports.</FormDescription>
+                    <FormMessage>{form.formState.errors.report?.message}</FormMessage>
                   </FormItem>
                 )}
               />
