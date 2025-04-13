@@ -2,7 +2,7 @@
 
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
-import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel} from '@/components/ui/form';
+import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
@@ -16,9 +16,9 @@ import * as z from 'zod';
 import {getDoctorTypes, DoctorType} from '@/services/doctor-type';
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert';
 import {AlertTriangle} from 'lucide-react';
-import {cn} from '@/lib/utils';
 import {useToast} from '@/hooks/use-toast';
 import {ScrollArea} from '@/components/ui/scroll-area';
+import {FileUpload} from '@/components/ui/upload';
 
 const formSchema = z.object({
   symptoms: z.string().min(2, {
@@ -161,6 +161,7 @@ export default function Home() {
                       <Textarea placeholder="Describe your symptoms" className="resize-none" {...field} />
                     </FormControl>
                     <FormDescription>Please provide a detailed description of your symptoms.</FormDescription>
+                    <FormMessage>{form.formState.errors.symptoms?.message}</FormMessage>
                   </FormItem>
                 )}
               />
@@ -185,19 +186,23 @@ export default function Home() {
                       </SelectContent>
                     </Select>
                     <FormDescription>Select the type of doctor you plan to consult.</FormDescription>
+                    <FormMessage>{form.formState.errors.doctorType?.message}</FormMessage>
                   </FormItem>
                 )}
               />
-               <FormField
+              <FormField
                 control={form.control}
                 name="reportUrl"
                 render={({field}) => (
                   <FormItem>
                     <FormLabel>Previous Reports (Optional)</FormLabel>
                     <FormControl>
-                      <Input type="url" placeholder="Upload URL of previous reports" {...field} />
+                      <div className="flex items-center space-x-2">
+                        <Input type="url" placeholder="Link to previous reports" {...field} />
+                      </div>
                     </FormControl>
                     <FormDescription>Link to a PDF or online document containing previous medical reports.</FormDescription>
+                    <FormMessage>{form.formState.errors.reportUrl?.message}</FormMessage>
                   </FormItem>
                 )}
               />
