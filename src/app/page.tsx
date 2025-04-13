@@ -8,6 +8,7 @@ import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Textarea} from '@/components/ui/textarea';
 import {generatePrecautions} from '@/ai/flows/generate-precautions';
+import {interactiveMediAgent} from '@/ai/flows/interactive-mediagent';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useEffect, useState} from 'react';
 import {useForm} from 'react-hook-form';
@@ -17,6 +18,7 @@ import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert';
 import {AlertTriangle} from 'lucide-react';
 import {cn} from '@/lib/utils';
 import {useToast} from '@/hooks/use-toast';
+import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog";
 
 const formSchema = z.object({
   symptoms: z.string().min(2, {
@@ -27,29 +29,17 @@ const formSchema = z.object({
   }),
 });
 
-function speak(text: string) {
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    const synth = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance(text);
-
-    // Configure the utterance
-    utterance.lang = 'en-US';
-    utterance.rate = 1.0; // Speed of speech
-    utterance.pitch = 1.0; // Voice pitch
-
-    // Speak the text
-    synth.speak(utterance);
-  } else {
-    console.warn('Text-to-speech not supported in this browser.');
-  }
-}
-
 export default function Home() {
   const [precautions, setPrecautions] = useState<Awaited<ReturnType<typeof generatePrecautions>> | null>(null);
   const [doctorTypes, setDoctorTypes] = useState<DoctorType[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const {toast} = useToast();
+  const [open, setOpen] = useState(false);
+  const [interactiveResponse, setInteractiveResponse] = useState<string | null>(null);
+  const [userQuestion, setUserQuestion] = useState('');
+  const [initialPrecautions, setInitialPrecautions] = useState('');
+  const [mediAgentLoading, setMediAgentLoading] = useState(false);
 
   useEffect(() => {
     const loadDoctorTypes = async () => {
@@ -81,10 +71,19 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setPrecautions(null);
+    setInteractiveResponse(null);
+    setUserQuestion('');
 
     try {
       const generatedPrecautions = await generatePrecautions(values);
       setPrecautions(generatedPrecautions);
+      setInitialPrecautions(
+        `Dietary Precautions: ${generatedPrecautions.dietPrecautions}\n` +
+        `Sleep Precautions: ${generatedPrecautions.sleepPrecautions}\n` +
+        `Physical Precautions: ${generatedPrecautions.physicalPrecautions}\n` +
+        `Mental Precautions: ${generatedPrecautions.mentalPrecautions}\n` +
+        `Things to Avoid: ${generatedPrecautions.thingsToAvoid}`
+      );
     } catch (e: any) {
       setError(e.message || 'Failed to generate precautions.');
       toast({
@@ -97,32 +96,30 @@ export default function Home() {
     }
   }
 
-  const handleSpeak = async () => {
-    if (precautions) {
-      setLoading(true);
-      try {
-        let fullText = 'Hello, I am MediAgent. Here are your personalized precautions:\n';
-        fullText += `Dietary Precautions: ${precautions.dietPrecautions}\n`;
-        fullText += `Sleep Precautions: ${precautions.sleepPrecautions}\n`;
-        fullText += `Physical Precautions: ${precautions.physicalPrecautions}\n`;
-        fullText += `Mental Precautions: ${precautions.mentalPrecautions}\n`;
-        fullText += `Things to Avoid: ${precautions.thingsToAvoid}`;
-        speak(fullText);
-      } catch (e: any) {
-        setError(e.message || 'Failed to generate spoken feedback.');
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: e.message || 'Failed to generate spoken feedback.',
-        });
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      toast({
-        title: 'No precautions generated',
-        description: 'Please generate precautions first.',
+  const handleInteractiveSession = async () => {
+    setOpen(true);
+  };
+
+  const handleQuestionSubmit = async () => {
+    setMediAgentLoading(true);
+    setError(null);
+    setInteractiveResponse(null);
+
+    try {
+      const response = await interactiveMediAgent({
+        initialPrecautions: initialPrecautions,
+        userQuestion: userQuestion,
       });
+      setInteractiveResponse(response.agentResponse);
+    } catch (e: any) {
+      setError(e.message || 'Failed to get interactive response.');
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: e.message || 'Failed to get interactive response.',
+      });
+    } finally {
+      setMediAgentLoading(false);
     }
   };
 
@@ -215,9 +212,54 @@ export default function Home() {
                   <p>{precautions?.thingsToAvoid}</p>
                 </div>
               </div>
-              <Button className="mt-4" onClick={handleSpeak} disabled={loading}>
-                {loading ? 'Contacting MediAgent...' : 'Contact MediAgent'}
-              </Button>
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button className="mt-4" onClick={handleInteractiveSession} disabled={loading}>
+                    Contact MediAgent
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Interactive MediAgent</DialogTitle>
+                    <DialogDescription>
+                      Ask MediAgent any follow-up questions about your precautions.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="question" className="text-right">
+                        Your Question
+                      </Label>
+                      <Input
+                        type="text"
+                        id="question"
+                        placeholder="Enter your question"
+                        className="col-span-3"
+                        value={userQuestion}
+                        onChange={(e) => setUserQuestion(e.target.value)}
+                      />
+                    </div>
+                    {interactiveResponse && (
+                      <div>
+                        <Label>MediAgent Response</Label>
+                        <p>{interactiveResponse}</p>
+                      </div>
+                    )}
+                    {error && (
+                      <Alert variant="destructive">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Error</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" onClick={handleQuestionSubmit} disabled={mediAgentLoading}>
+                      {mediAgentLoading ? 'Loading...' : 'Submit Question'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </div>
