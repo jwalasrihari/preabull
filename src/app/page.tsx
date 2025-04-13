@@ -28,6 +28,29 @@ const formSchema = z.object({
     message: 'Doctor Type must be at least 2 characters.',
   }),
   report: z.any().optional(),
+}).refine((data) => {
+  const symptomDoctorMap: { [key: string]: string[] } = {
+    'lung infection': ['Pulmonologist', 'General Physician'],
+    'chest pain': ['Cardiologist', 'General Physician'],
+    'skin rash': ['Dermatologist', 'General Physician'],
+    'headache': ['Neurologist', 'General Physician'],
+  };
+
+  const symptoms = data.symptoms.toLowerCase();
+  const doctorType = data.doctorType;
+
+  for (const symptom in symptomDoctorMap) {
+    if (symptoms.includes(symptom)) {
+      if (!symptomDoctorMap[symptom].includes(doctorType)) {
+        return false;
+      }
+      break;
+    }
+  }
+  return true;
+}, {
+  message: 'The doctor type is not appropriate for the symptoms described.',
+  path: ['doctorType'],
 });
 
 export default function Home() {
@@ -241,6 +264,13 @@ export default function Home() {
               <Button type="submit" disabled={loading} className="shadow-md rounded-md">
                 {loading ? 'Generating...' : 'Generate Precautions'}
               </Button>
+              {form.formState.errors.root && (
+                <Alert variant="destructive" className="shadow-sm rounded-md">
+                  <AlertTriangle className="h-4 w-4"/>
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
+                </Alert>
+              )}
               {error && (
                 <Alert variant="destructive" className="shadow-sm rounded-md">
                   <AlertTriangle className="h-4 w-4"/>
@@ -341,4 +371,3 @@ export default function Home() {
     </div>
   );
 }
-
